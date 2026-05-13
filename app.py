@@ -106,8 +106,7 @@ class VideoDubbingPipeline:
                 "-acodec", "pcm_s16le",
                 "-ar", "16000",
                 "-ac", "1",
-                "-q:a", "9",
-                "-n",
+                "-y",
                 output_audio
             ]
             
@@ -159,7 +158,7 @@ class VideoDubbingPipeline:
             try:
                 from google.cloud import translate_v2
                 client = translate_v2.Client()
-                result = client.translate_text(text, target_language=target_lang)
+                result = client.translate(text, target_language=target_lang)
                 translated = result['translatedText']
                 self.log("✅ Translation completed (Google Translate)")
                 return translated
@@ -170,19 +169,18 @@ class VideoDubbingPipeline:
             try:
                 import requests
                 
-                # Using Free Translation API
-                payload = {
+                # Using Free Translation API (MyMemory)
+                params = {
                     'q': text[:500],  # Limit text size
-                    'source': source_lang,
-                    'target': target_lang
+                    'langpair': f'{source_lang}|{target_lang}'
                 }
                 
                 headers = {'User-Agent': 'Mozilla/5.0'}
                 
-                # Try multiple free translation services
-                response = requests.post(
+                # Try MyMemory free translation service
+                response = requests.get(
                     'https://api.mymemory.translated.net/get',
-                    params=payload,
+                    params=params,
                     headers=headers,
                     timeout=10
                 )
@@ -209,7 +207,7 @@ class VideoDubbingPipeline:
         try:
             self.log("🎙️ Generating dubbed audio (TTS)...")
             
-            output_audio = os.path.join(self.temp_dir, f"tts_audio_{len(os.listdir(self.temp_dir))}.wav")
+            output_audio = os.path.join(self.temp_dir, f"tts_audio_{datetime.now().strftime('%H%M%S%f')}.wav")
             
             if not PYTTSX3_AVAILABLE:
                 self.log("⚠️ TTS not available, using dummy audio")
@@ -290,7 +288,8 @@ class VideoDubbingPipeline:
         try:
             self.log("📝 Adding subtitles to video...")
             
-            output_video = video_path.replace(".mp4", "_subtitled.mp4")
+            base, _ = os.path.splitext(video_path)
+            output_video = base + "_subtitled.mp4"
             
             # Create SRT file
             srt_path = os.path.join(self.temp_dir, "subtitles.srt")
@@ -307,7 +306,7 @@ class VideoDubbingPipeline:
                 "-c:a", "aac",
                 "-c:v", "libx264",
                 "-preset", "fast",
-                "-n",
+                "-y",
                 output_video
             ]
             
