@@ -1,0 +1,38 @@
+{
+  "name": "AI Video Dubbing",
+  "image": "mcr.microsoft.com/devcontainers/python:3.10-bullseye",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "postCreateCommand": "bash setup.sh",
+  "forwardPorts": [7860],
+  "portsAttributes": {
+    "7860": {
+      "label": "Gradio UI",
+      "onAutoForward": "notify"
+    }
+  },
+  "customizations": {
+    "codespaces": {
+      "openFiles": ["README.md", "app.py"]
+    },
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "ms-toolsai.jupyter"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "python.formatting.provider": "black",
+        "[python]": {
+          "editor.formatOnSave": true
+        }
+      }
+    }
+  },
+  "remoteUser": "root"
+}
